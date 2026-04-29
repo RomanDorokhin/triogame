@@ -118,6 +118,9 @@ export function drawHitZones(t) {
     ctx.textBaseline = 'middle';
     ctx.fillStyle = `rgba(${rgb},.4)`;
     ctx.fillText(keys[l], x, HY);
+    ctx.font = `${Math.round(Math.max(9, NR * 0.22))}px Orbitron,sans-serif`;
+    ctx.fillStyle = 'rgba(255,255,255,.32)';
+    ctx.fillText('кольцо', x, HY + NR + 14);
   }
 }
 
@@ -144,20 +147,7 @@ export function drawNotes() {
       ctx.arc(x, n.y, NR * 0.65, 0, Math.PI * 2);
       ctx.fill();
     } else {
-      const dist = HY - n.y;
-      if (dist > 0 && dist < H * 0.55) {
-        ctx.globalAlpha = n.a * 0.28;
-        ctx.strokeStyle = col;
-        ctx.lineWidth = 1.5;
-        ctx.setLineDash([3, 7]);
-        ctx.beginPath();
-        ctx.moveTo(x, n.y + NR);
-        ctx.lineTo(x, n.y + Math.min(dist * 0.5, 80));
-        ctx.stroke();
-        ctx.setLineDash([]);
-        ctx.globalAlpha = n.a;
-      }
-
+      /* Без «луча» к линии попадания — он выглядел как выстрел; только падающий шарик. */
       ctx.shadowBlur = 18;
       const g = ctx.createRadialGradient(x, n.y, 0, x, n.y, NR);
       g.addColorStop(0, '#fff');
@@ -265,6 +255,16 @@ export function drawHUD(t) {
   ctx.font = `${Math.round(W * 0.014)}px Orbitron,sans-serif`;
   ctx.fillStyle = 'rgba(255,255,255,.35)';
   ctx.fillText(COPY.hudGoal, W / 2, 92);
+
+  const inLead = elapsed < LEAD_BEATS * BEAT;
+  if (inLead) {
+    ctx.font = `${Math.round(W * 0.015)}px Orbitron,sans-serif`;
+    ctx.fillStyle = 'rgba(0,255,200,.75)';
+    ctx.shadowColor = '#00ff88';
+    ctx.shadowBlur = 6;
+    ctx.fillText(COPY.hudLeadIn, W / 2, 108);
+    ctx.shadowBlur = 0;
+  }
 
   if (game.combo > 1) {
     const big = game.combo >= 100;
