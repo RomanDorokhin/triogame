@@ -1,9 +1,9 @@
 'use strict';
 
-import { DC, JD_BASE } from './config.js';
+import { DC, JD_BASE, LC } from './config.js';
 import { game, saveBest, setSt } from './state.js';
 import { spawnParts, addFloat, spawnComboFlare } from './fx.js';
-import { LC, LX, HY, NR } from './canvas.js';
+import { LX, HY, NR } from './canvas.js';
 
 function getJudgments() {
   const mul = DC[game.diff].jdMul;

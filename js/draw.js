@@ -255,7 +255,7 @@ export function drawHUD(t) {
   ctx.fillText(act, W / 2, 58);
 
   const songBody = elapsed - LEAD_BEATS * BEAT;
-  let tier = 'УРОВЕНЬ 1 — одна дорожка (A)';
+  let tier = 'УРОВЕНЬ 1 — одна дорожка (S, центр)';
   if (songBody >= LANE_UNLOCK_MS[1]) tier = 'УРОВЕНЬ 3 — три дорожки (A S D)';
   else if (songBody >= LANE_UNLOCK_MS[0]) tier = 'УРОВЕНЬ 2 — две дорожки (A S)';
   ctx.font = `${Math.round(W * 0.016)}px Orbitron,monospace`;
@@ -265,6 +265,8 @@ export function drawHUD(t) {
   ctx.font = `${Math.round(W * 0.014)}px Orbitron,sans-serif`;
   ctx.fillStyle = 'rgba(255,255,255,.35)';
   ctx.fillText(COPY.hudGoal, W / 2, 92);
+
+  if (game.combo > 1) {
     const big = game.combo >= 100;
     const sz = Math.min(W * 0.04 + (big ? W * 0.008 : 0), 26);
     ctx.font = `bold ${Math.round(sz)}px Orbitron,monospace`;

@@ -1,7 +1,13 @@
 'use strict';
 
-import { BEAT, LEAD_BEATS, SONG_MS, activeLaneCapAtBodyMs } from './config.js';
-import { BEATS_PER_LOOP, getPatternForLoop } from './patterns.js';
+import {
+  BEAT,
+  BEATS_PER_LOOP,
+  LEAD_BEATS,
+  SONG_MS,
+  activeLaneCapAtBodyMs,
+} from './config.js';
+import { getPatternForLoop } from './patterns.js';
 
 /**
  * @param {number} gStart
