@@ -5,7 +5,7 @@ import { buildSched } from './schedule.js';
 
 /** Единый объект состояния (присваивания из других модулей безопасны). */
 export const game = {
-  st: /** @type {'intro'|'menu'|'play'|'pause'|'results'} */ ('intro'),
+  st: /** @type {'menu'|'play'|'pause'|'results'} */ ('menu'),
   diff: 'norm',
   score: 0,
   combo: 0,
@@ -38,10 +38,6 @@ export function setSt(v) {
 
 export function setDiff(d) {
   game.diff = d;
-}
-
-export function goToMenuFromIntro() {
-  game.st = 'menu';
 }
 
 export function initGame(d) {

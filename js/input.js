@@ -1,7 +1,7 @@
 'use strict';
 
 import { c, W } from './canvas.js';
-import { game, initGame, goToMenuFromIntro, setDiff, saveBest, setSt } from './state.js';
+import { game, initGame, setDiff, saveBest, setSt } from './state.js';
 import { tap, pause, resume } from './notes.js';
 
 function laneFromClientX(clientX) {
@@ -14,11 +14,6 @@ function hitRect(x, y, r) {
 }
 
 export function menuClick(x, y) {
-  if (game.st === 'intro') {
-    const r = game.mBtns.introStart;
-    if (r && hitRect(x, y, r)) goToMenuFromIntro();
-    return;
-  }
   if (game.st !== 'menu') return;
 
   for (const dk of ['easy', 'norm', 'hard']) {
@@ -38,7 +33,7 @@ export function bindInput() {
     (e) => {
       e.preventDefault();
       const t = e.changedTouches[0];
-      if (game.st === 'intro' || game.st === 'menu') menuClick(t.clientX, t.clientY);
+      if (game.st === 'menu') menuClick(t.clientX, t.clientY);
       else if (game.st === 'play' || game.st === 'pause')
         tap(laneFromClientX(t.clientX));
       else if (game.st === 'results') {
@@ -50,7 +45,7 @@ export function bindInput() {
   );
 
   c.addEventListener('mousedown', (e) => {
-    if (game.st === 'intro' || game.st === 'menu') menuClick(e.clientX, e.clientY);
+    if (game.st === 'menu') menuClick(e.clientX, e.clientY);
     else if (game.st === 'play' || game.st === 'pause')
       tap(laneFromClientX(e.clientX));
     else if (game.st === 'results') {
@@ -87,10 +82,6 @@ export function bindInput() {
         saveBest();
         setSt('menu');
       }
-    }
-    if ((e.key === ' ' || e.key === 'Enter') && game.st === 'intro') {
-      e.preventDefault();
-      goToMenuFromIntro();
     }
     if ((e.key === ' ' || e.key === 'Enter') && game.st === 'menu') {
       e.preventDefault();

@@ -14,7 +14,6 @@ import {
   drawFloats,
   drawHUD,
   drawPause,
-  drawIntro,
   drawMenu,
   drawResults,
 } from './draw.js';
@@ -36,9 +35,7 @@ function loop(t) {
   ctx.save();
   if (ox || oy) ctx.translate(ox, oy);
 
-  if (game.st === 'intro') {
-    drawIntro(t);
-  } else if (game.st === 'menu') {
+  if (game.st === 'menu') {
     drawMenu(t);
   } else if (game.st === 'play') {
     if (t - game.gStart > SONG_MS) {

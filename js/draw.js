@@ -332,57 +332,7 @@ export function drawPause(t) {
   ctx.fillText('ТАП / ESC — продолжить', W / 2, H / 2 + H * 0.06);
 }
 
-/** Первый экран: только заголовок и одна кнопка */
-export function drawIntro(t) {
-  drawBG(t);
-  const cx = W / 2;
-  const cy = H * 0.34;
-
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.font = `700 ${Math.round(W * 0.09)}px Orbitron,monospace`;
-  ctx.fillStyle = '#fff';
-  ctx.shadowColor = '#ff2d78';
-  ctx.shadowBlur = 20;
-  ctx.fillText('TAP BEATS', cx, cy);
-  ctx.shadowBlur = 0;
-
-  ctx.font = `${Math.round(W * 0.026)}px Orbitron,sans-serif`;
-  ctx.fillStyle = 'rgba(255,255,255,.55)';
-  ctx.fillText(COPY.tagline, cx, cy + H * 0.055);
-  ctx.font = `${Math.round(W * 0.022)}px Orbitron,sans-serif`;
-  ctx.fillStyle = 'rgba(255,255,255,.42)';
-  const lines = COPY.introSub.split(' ');
-  const mid = Math.ceil(lines.length / 2);
-  const line1 = lines.slice(0, mid).join(' ');
-  const line2 = lines.slice(mid).join(' ');
-  ctx.fillText(line1, cx, cy + H * 0.095);
-  ctx.fillText(line2, cx, cy + H * 0.125);
-
-  const bw = Math.min(W * 0.72, 320);
-  const bh = 56;
-  const bx = (W - bw) / 2;
-  const by = H * 0.52;
-  const pulse = 0.5 + Math.sin(t / 400) * 0.08;
-  ctx.shadowColor = '#00d4ff';
-  ctx.shadowBlur = 14 + pulse * 10;
-  ctx.strokeStyle = 'rgba(0,212,255,.85)';
-  ctx.lineWidth = 2;
-  rr(bx, by, bw, bh, 14);
-  ctx.stroke();
-  ctx.fillStyle = 'rgba(0,212,255,.12)';
-  rr(bx, by, bw, bh, 14);
-  ctx.fill();
-  ctx.shadowBlur = 0;
-
-  ctx.font = `bold ${Math.round(W * 0.042)}px Orbitron`;
-  ctx.fillStyle = '#fff';
-  ctx.fillText('НАЧАТЬ', cx, by + bh / 2);
-
-  game.mBtns.introStart = { x: bx, y: by, w: bw, h: bh };
-}
-
-/** Настройки сложности и явная кнопка «Играть» */
+/** Меню: сложность + одна кнопка «НАЧАТЬ» */
 export function drawMenu(t) {
   drawBG(t);
   const cx = W / 2;
@@ -402,6 +352,10 @@ export function drawMenu(t) {
   ctx.font = `${Math.round(W * 0.02)}px Orbitron,sans-serif`;
   ctx.fillStyle = 'rgba(255,255,255,.36)';
   ctx.fillText(`${BPM} BPM  •  ${COPY.menuHint}`, cx, H * 0.275);
+  const subWords = COPY.menuSub.split(' ');
+  const midW = Math.ceil(subWords.length / 2);
+  ctx.fillText(subWords.slice(0, midW).join(' '), cx, H * 0.305);
+  ctx.fillText(subWords.slice(midW).join(' '), cx, H * 0.33);
 
   const dks = ['easy', 'norm', 'hard'];
   const dls = ['ЛЕГКО', 'НОРМАЛЬНО', 'СЛОЖНО'];
@@ -409,7 +363,7 @@ export function drawMenu(t) {
   const bh = 44;
   const tw = dks.length * bw + (dks.length - 1) * 10;
   const bsx = (W - tw) / 2;
-  const bsy = H * 0.34;
+  const bsy = H * 0.38;
 
   dks.forEach((dk, i) => {
     const bx = bsx + i * (bw + 10);
@@ -438,7 +392,7 @@ export function drawMenu(t) {
   const sbw = Math.min(W * 0.55, 280);
   const sbh = 52;
   const sbx = (W - sbw) / 2;
-  const sby = H * 0.52;
+  const sby = H * 0.56;
   const col = DC[game.diff].col;
   ctx.shadowColor = col;
   ctx.shadowBlur = 18;
@@ -452,17 +406,17 @@ export function drawMenu(t) {
   ctx.shadowBlur = 0;
   ctx.font = `bold ${Math.round(W * 0.038)}px Orbitron`;
   ctx.fillStyle = '#fff';
-  ctx.fillText('ИГРАТЬ', cx, sby + sbh / 2);
+  ctx.fillText('НАЧАТЬ', cx, sby + sbh / 2);
   game.mBtns.play = { x: sbx, y: sby, w: sbw, h: sbh };
 
   ctx.font = `${Math.round(W * 0.022)}px Orbitron`;
   ctx.fillStyle = 'rgba(255,255,255,.32)';
-  ctx.fillText('В игре: сначала 1 колонка, потом 2, потом 3. A S D или тап по зоне.', cx, H * 0.66);
+  ctx.fillText('A S D или тап по зоне колонки', cx, H * 0.7);
 
   if (game.best[game.diff] > 0) {
     ctx.font = `${Math.round(W * 0.022)}px Orbitron`;
     ctx.fillStyle = 'rgba(255,215,0,.55)';
-    ctx.fillText(`★ рекорд  ${game.best[game.diff].toLocaleString()}`, cx, H * 0.74);
+    ctx.fillText(`★ рекорд  ${game.best[game.diff].toLocaleString()}`, cx, H * 0.78);
   }
 }
 
