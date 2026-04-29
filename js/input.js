@@ -4,6 +4,11 @@ import { c, W } from './canvas.js';
 import { game, initGame, goToMenuFromIntro, setDiff, saveBest, setSt } from './state.js';
 import { tap, pause, resume } from './notes.js';
 
+function laneFromClientX(clientX) {
+  const ac = game.activeLanes;
+  return Math.min(ac - 1, Math.max(0, Math.floor(clientX / (W / ac))));
+}
+
 function hitRect(x, y, r) {
   return x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
 }
@@ -35,7 +40,7 @@ export function bindInput() {
       const t = e.changedTouches[0];
       if (game.st === 'intro' || game.st === 'menu') menuClick(t.clientX, t.clientY);
       else if (game.st === 'play' || game.st === 'pause')
-        tap(Math.min(2, Math.floor(t.clientX / (W / 3))));
+        tap(laneFromClientX(t.clientX));
       else if (game.st === 'results') {
         saveBest();
         setSt('menu');
@@ -47,7 +52,7 @@ export function bindInput() {
   c.addEventListener('mousedown', (e) => {
     if (game.st === 'intro' || game.st === 'menu') menuClick(e.clientX, e.clientY);
     else if (game.st === 'play' || game.st === 'pause')
-      tap(Math.min(2, Math.floor(e.clientX / (W / 3))));
+      tap(laneFromClientX(e.clientX));
     else if (game.st === 'results') {
       saveBest();
       setSt('menu');
@@ -68,8 +73,11 @@ export function bindInput() {
     };
     if (km[e.key] !== undefined) {
       if (game.st === 'play' || game.st === 'pause') {
-        e.preventDefault();
-        tap(km[e.key]);
+        const lane = km[e.key];
+        if (lane < game.activeLanes) {
+          e.preventDefault();
+          tap(lane);
+        }
       }
     }
     if (e.key === 'Escape') {

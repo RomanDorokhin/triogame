@@ -1,9 +1,9 @@
 'use strict';
 
-import { BEAT, BPM, DC, LR, LC, SONG_MS } from './config.js';
+import { BEAT, BPM, DC, LR, LC, SONG_MS, LEAD_BEATS, COPY, LANE_UNLOCK_MS } from './config.js';
 import { phaseLabel } from './patterns.js';
 import { game } from './state.js';
-import { ctx, W, H, HY, LW, LX, NR } from './canvas.js';
+import { ctx, W, H, HY, LX, NR } from './canvas.js';
 
 export function rr(x, y, w, h, r) {
   ctx.beginPath();
@@ -26,13 +26,16 @@ export function drawBG(t) {
   if (game.st === 'play' || game.st === 'pause') {
     const bp = ((t - game.gStart) % BEAT) / BEAT;
     game.beatPulse = Math.max(0, 1 - bp * 3.6);
-    for (let l = 0; l < 3; l++) {
-      const g = ctx.createLinearGradient(l * LW, 0, (l + 1) * LW, 0);
+    const ac = game.activeLanes;
+    for (let l = 0; l < ac; l++) {
+      const x0 = (l * W) / ac;
+      const x1 = ((l + 1) * W) / ac;
+      const g = ctx.createLinearGradient(x0, 0, x1, 0);
       g.addColorStop(0, 'transparent');
       g.addColorStop(0.5, `rgba(${LR[l]},${0.022 + game.beatPulse * 0.08})`);
       g.addColorStop(1, 'transparent');
       ctx.fillStyle = g;
-      ctx.fillRect(l * LW, 0, LW, H);
+      ctx.fillRect(x0, 0, x1 - x0, H);
     }
   }
 
@@ -55,28 +58,33 @@ export function drawBG(t) {
 }
 
 export function drawLanes() {
-  for (let i = 1; i < 3; i++) {
+  const ac = game.activeLanes;
+  for (let i = 1; i < ac; i++) {
+    const x = (i * W) / ac;
     ctx.strokeStyle = 'rgba(255,255,255,.09)';
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(i * LW, 0);
-    ctx.lineTo(i * LW, H);
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, H);
     ctx.stroke();
   }
   ctx.fillStyle = 'rgba(0,0,0,.42)';
   ctx.fillRect(0, HY + NR * 1.9, W, H - HY - NR * 1.9);
 
-  for (let l = 0; l < 3; l++) {
+  const laneW = W / ac;
+  for (let l = 0; l < ac; l++) {
     if (game.flash[l] > 0) {
       ctx.fillStyle = `rgba(${LR[l]},${game.flash[l] * 0.16})`;
-      ctx.fillRect(l * LW, 0, LW, H);
+      ctx.fillRect((l * W) / ac, 0, laneW, H);
       game.flash[l] = Math.max(0, game.flash[l] - 0.1);
     }
   }
 }
 
 export function drawHitZones(t) {
-  for (let l = 0; l < 3; l++) {
+  const ac = game.activeLanes;
+  const keys = ['A', 'S', 'D'];
+  for (let l = 0; l < ac; l++) {
     const x = LX[l];
     const col = LC[l];
     const rgb = LR[l];
@@ -109,7 +117,7 @@ export function drawHitZones(t) {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = `rgba(${rgb},.4)`;
-    ctx.fillText(['A', 'S', 'D'][l], x, HY);
+    ctx.fillText(keys[l], x, HY);
   }
 }
 
@@ -246,7 +254,17 @@ export function drawHUD(t) {
   ctx.fillStyle = 'rgba(255,255,255,.45)';
   ctx.fillText(act, W / 2, 58);
 
-  if (game.combo > 1) {
+  const songBody = elapsed - LEAD_BEATS * BEAT;
+  let tier = 'УРОВЕНЬ 1 — одна дорожка (A)';
+  if (songBody >= LANE_UNLOCK_MS[1]) tier = 'УРОВЕНЬ 3 — три дорожки (A S D)';
+  else if (songBody >= LANE_UNLOCK_MS[0]) tier = 'УРОВЕНЬ 2 — две дорожки (A S)';
+  ctx.font = `${Math.round(W * 0.016)}px Orbitron,monospace`;
+  ctx.fillStyle = 'rgba(255,215,0,.55)';
+  ctx.fillText(tier, W / 2, 76);
+
+  ctx.font = `${Math.round(W * 0.014)}px Orbitron,sans-serif`;
+  ctx.fillStyle = 'rgba(255,255,255,.35)';
+  ctx.fillText(COPY.hudGoal, W / 2, 92);
     const big = game.combo >= 100;
     const sz = Math.min(W * 0.04 + (big ? W * 0.008 : 0), 26);
     ctx.font = `bold ${Math.round(sz)}px Orbitron,monospace`;
@@ -262,7 +280,7 @@ export function drawHUD(t) {
     ctx.fillStyle = cc;
     ctx.shadowColor = cc;
     ctx.shadowBlur = cb;
-    ctx.fillText(`${game.combo}× COMBO`, W / 2, 82);
+    ctx.fillText(`${game.combo}× COMBO`, W / 2, 112);
     ctx.shadowBlur = 0;
   }
 
@@ -327,9 +345,17 @@ export function drawIntro(t) {
   ctx.fillText('TAP BEATS', cx, cy);
   ctx.shadowBlur = 0;
 
-  ctx.font = `${Math.round(W * 0.028)}px Orbitron,sans-serif`;
-  ctx.fillStyle = 'rgba(255,255,255,.5)';
-  ctx.fillText('ритм • три дорожки • A S D', cx, cy + H * 0.065);
+  ctx.font = `${Math.round(W * 0.026)}px Orbitron,sans-serif`;
+  ctx.fillStyle = 'rgba(255,255,255,.55)';
+  ctx.fillText(COPY.tagline, cx, cy + H * 0.055);
+  ctx.font = `${Math.round(W * 0.022)}px Orbitron,sans-serif`;
+  ctx.fillStyle = 'rgba(255,255,255,.42)';
+  const lines = COPY.introSub.split(' ');
+  const mid = Math.ceil(lines.length / 2);
+  const line1 = lines.slice(0, mid).join(' ');
+  const line2 = lines.slice(mid).join(' ');
+  ctx.fillText(line1, cx, cy + H * 0.095);
+  ctx.fillText(line2, cx, cy + H * 0.125);
 
   const bw = Math.min(W * 0.72, 320);
   const bh = 56;
@@ -369,8 +395,11 @@ export function drawMenu(t) {
   ctx.shadowBlur = 0;
 
   ctx.font = `${Math.round(W * 0.024)}px Orbitron,sans-serif`;
-  ctx.fillStyle = 'rgba(255,255,255,.42)';
-  ctx.fillText(`${BPM} BPM  •  выбери сложность`, cx, H * 0.22);
+  ctx.fillStyle = 'rgba(255,255,255,.48)';
+  ctx.fillText(COPY.tagline, cx, H * 0.24);
+  ctx.font = `${Math.round(W * 0.02)}px Orbitron,sans-serif`;
+  ctx.fillStyle = 'rgba(255,255,255,.36)';
+  ctx.fillText(`${BPM} BPM  •  ${COPY.menuHint}`, cx, H * 0.275);
 
   const dks = ['easy', 'norm', 'hard'];
   const dls = ['ЛЕГКО', 'НОРМАЛЬНО', 'СЛОЖНО'];
@@ -426,7 +455,7 @@ export function drawMenu(t) {
 
   ctx.font = `${Math.round(W * 0.022)}px Orbitron`;
   ctx.fillStyle = 'rgba(255,255,255,.32)';
-  ctx.fillText('A S D или тап по колонке', cx, H * 0.66);
+  ctx.fillText('В игре: сначала 1 колонка, потом 2, потом 3. A S D или тап по зоне.', cx, H * 0.66);
 
   if (game.best[game.diff] > 0) {
     ctx.font = `${Math.round(W * 0.022)}px Orbitron`;
@@ -505,13 +534,17 @@ export function drawResults(t) {
     ctx.shadowBlur = 0;
   });
 
-  ctx.font = `${Math.round(W * 0.02)}px Orbitron,sans-serif`;
+  ctx.font = `${Math.round(W * 0.019)}px Orbitron,sans-serif`;
   ctx.fillStyle = 'rgba(255,255,255,.38)';
   ctx.fillText(
     `PERFECT ${game.perf}   GREAT ${game.grt}   GOOD ${game.gd}   MISS ${game.miss}`,
     cx,
-    H * 0.83,
+    H * 0.78,
   );
+
+  ctx.font = `${Math.round(W * 0.02)}px Orbitron,sans-serif`;
+  ctx.fillStyle = 'rgba(255,255,255,.4)';
+  ctx.fillText(COPY.hudGoal + ' — чем точнее попадания, тем выше оценка.', cx, H * 0.86);
 
   const rp = 0.9 + Math.sin(t / 450) * 0.1;
   ctx.font = `bold ${Math.round(W * 0.042 * rp)}px Orbitron`;

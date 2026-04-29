@@ -1,6 +1,6 @@
 'use strict';
 
-import { BEAT, LEAD_BEATS, SONG_MS } from './config.js';
+import { BEAT, LEAD_BEATS, LANE_UNLOCK_MS } from './config.js';
 import { buildSched } from './schedule.js';
 
 /** Единый объект состояния (присваивания из других модулей безопасны). */
@@ -26,6 +26,8 @@ export const game = {
   gStart: 0,
   pauseT: 0,
   activityLoop: 0,
+  /** Активных игровых колонок 1…3 (растёт по времени трека) */
+  activeLanes: 1,
   best: { easy: 0, norm: 0, hard: 0 },
   mBtns: /** @type {Record<string, {x:number,y:number,w:number,h:number}>} */ ({}),
 };
@@ -54,6 +56,7 @@ export function initGame(d) {
   game.shake = game.beatPulse = 0;
   game.schedI = 0;
   game.activityLoop = 0;
+  game.activeLanes = 1;
   game.gStart = performance.now();
   game.sched = buildSched(game.gStart, game.diff);
 }
@@ -66,4 +69,12 @@ export function updateActivityLoop(t) {
   const elapsed = t - game.gStart;
   const beat = elapsed / BEAT - LEAD_BEATS;
   game.activityLoop = Math.max(0, Math.floor(beat / 16));
+}
+
+/** После лид-ина: сначала 1 колонка, затем 2, затем 3 */
+export function updateLaneUnlock(t) {
+  const songMs = t - game.gStart - LEAD_BEATS * BEAT;
+  if (songMs < LANE_UNLOCK_MS[0]) game.activeLanes = 1;
+  else if (songMs < LANE_UNLOCK_MS[1]) game.activeLanes = 2;
+  else game.activeLanes = 3;
 }

@@ -1,8 +1,8 @@
 'use strict';
 
 import { SONG_MS } from './config.js';
-import { ctx, W, H } from './canvas.js';
-import { game, saveBest, setSt, updateActivityLoop } from './state.js';
+import { ctx, W, H, resize } from './canvas.js';
+import { game, saveBest, setSt, updateActivityLoop, updateLaneUnlock } from './state.js';
 import { spawnNotes, updNotes } from './notes.js';
 import { updParts, updFloats } from './fx.js';
 import {
@@ -46,6 +46,8 @@ function loop(t) {
       setSt('results');
     }
     updateActivityLoop(t);
+    updateLaneUnlock(t);
+    resize();
     spawnNotes(t);
     updNotes(t);
     updParts();
@@ -59,6 +61,8 @@ function loop(t) {
     drawHUD(t);
   } else if (game.st === 'pause') {
     updateActivityLoop(t);
+    updateLaneUnlock(t);
+    resize();
     drawBG(t);
     drawLanes();
     drawHitZones(t);
